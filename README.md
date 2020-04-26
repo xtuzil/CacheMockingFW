@@ -90,9 +90,7 @@ MOCKFW>do ##class(MockFW.MockManager).DeleteMock("MyMock")
 ```c++
 MOCKFW>do ##class(MockFW.MockManager).CleanAll()
 ```
-  
-    
-     
+      
 #### MockFW.Mocks.*NameOfTheMock*
 The generated class definition can be called in order to get predefined response. Also, it can be saved the mock method directly with this class.
 
@@ -130,6 +128,52 @@ Save the form and your web app is ready to use!
 ```
 http://localhost:CachéPort/api/mocks/MyMock/MethodUrl
 ```
+
+
+## Instructions for FW user to distribute mock via Docker
+1. To distribute mock via Docker, first it is neccessary to prepare template directory of the project from the git. 
+```sh
+$ git clone https://github.com/xtuzil/MockFW.git  # or pull
+```
+2. Export mock data from Caché:
+    * *nameOfTheMock* As %String
+    * *dirPath* As %String -> directory, where the files *dataGlobal.gof* and *mockClass.xml* will be generated
+    * *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
+```c++
+MOCKFW>do ##class(MockFW.MockManager).ExportMock("MyMock", "C:\Users\user\Desktop")
+```
+3. Copy exported file *dataGlobal.gof* and optionally *mockClass.xml* (necessary only for calling the mock from IRIS terminal) to the project folder **src/ImportData**
+
+Then, there are two option to distribute the mock:  
+
+a) Send straightaway the directory to mock user  
+
+   4. Send the compressed directory of the mock project to the user. Then the user has to build image from project folder.
+        ```sh
+        e.g. $ zip -r MyMock.zip MockFW
+        ```
+   * this approach **allows** user to call the mock from IRIS terminal an also to edit the distributed mock  
+    
+
+b) Build the container and push it to Docker hub. The user will launch the mock with one command.  
+   * This needs to have account at https://hub.docker.com and to create repositary there.  
+  
+   4. Build the image
+         ```sh
+        $ docker-compose build
+        ```
+        
+   5. Then rename the image (tag the image) by finding the container ID or name (using **docker ps**).  
+        ```sh
+        $ docker tag mock1 myrepozitary/imagename:version
+         ```
+   6. Now, push the image to the registry using the image ID.  
+        ```sh
+        $ docker push myrepozitary/imagename:version
+        ```
+   7. Send the name of tag to the user. He can run the container only by one docker command
+   * this approach **does not allow** user to call the mock from IRIS terminal an also to edit the distributed mock
+    
 
 ## Instructions for docker mock user 
 As a mock user in Docker you have two options how you can obtain the mock:
@@ -185,54 +229,6 @@ As a mock user in Docker you have two options how you can obtain the mock:
     
 Look at the dockbook documentation to see all mocked methods in the mock!
 
-
-
-
-
-## Instructions for FW user to distribute mock via Docker
-1. To distribute mock via Docker, first it is neccessary to prepare template directory of the project from the git. 
-```sh
-$ git clone https://github.com/xtuzil/MockFW.git  # or pull
-```
-2. Export mock data from Caché:
-    * *nameOfTheMock* As %String
-    * *dirPath* As %String -> directory, where the files *dataGlobal.gof* and *mockClass.xml* will be generated
-    * *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
-```c++
-MOCKFW>do ##class(MockFW.MockManager).ExportMock("MyMock", "C:\Users\user\Desktop")
-```
-3. Copy exported file *dataGlobal.gof* and optionally *mockClass.xml* (necessary only for calling the mock from IRIS terminal) to the project folder **src/ImportData**
-
-Then, there are two option to distribute the mock:  
-
-a) Send straightaway the directory to mock user  
-
-   4. Send the compressed directory of the mock project to the user. Then the user has to build image from project folder.
-        ```sh
-        e.g. $ zip -r MyMock.zip MockFW
-        ```
-   * this approach **allows** user to call the mock from IRIS terminal an also to edit the distributed mock  
-    
-
-b) Build the container and push it to Docker hub. The user will launch the mock with one command.  
-   * This needs to have account at https://hub.docker.com and to create repositary there.  
-  
-   4. Build the image
-         ```sh
-        $ docker-compose build
-        ```
-        
-   5. Then rename the image (tag the image) by finding the container ID or name (using **docker ps**).  
-        ```sh
-        $ docker tag mock1 myrepozitary/imagename:version
-         ```
-   6. Now, push the image to the registry using the image ID.  
-        ```sh
-        $ docker push myrepozitary/imagename:version
-        ```
-   7. Send the name of tag to the user. He can run the container only by one docker command
-   * this approach **does not allow** user to call the mock from IRIS terminal an also to edit the distributed mock
-    
     
 @Matěj Tužil 2020
 
