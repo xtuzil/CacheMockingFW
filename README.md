@@ -41,7 +41,7 @@ MOCKFW>do ##class(MockFW.MockManager).MockMethodsFromCSV("C:\Users\user\Desktop\
 * *dirPath* As %String -> directory, where the documentation will be generated
 * *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
-MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\, 1)
+MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", 1)
 ```
 
 **ExportMock()** -- export mock for Docker usage 
@@ -133,7 +133,7 @@ http://localhost:CachéPort/api/mocks/MyMock/MethodUrl
 ## Instructions for FW user to distribute mock via Docker
 1. To distribute mock via Docker, first it is neccessary to prepare template directory of the project from the git. 
 ```sh
-$ git clone https://github.com/xtuzil/CacheMockFW-projectTemplate  # or pull
+$ git clone https://github.com/xtuzil/CacheMockingFW-DockerProjectTemplate  # or pull
 ```
 2. Export mock data from Caché:
     * *nameOfTheMock* As %String
