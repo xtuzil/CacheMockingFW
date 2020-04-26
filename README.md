@@ -133,7 +133,7 @@ http://localhost:CachéPort/api/mocks/MyMock/MethodUrl
 ## Instructions for FW user to distribute mock via Docker
 1. To distribute mock via Docker, first it is neccessary to prepare template directory of the project from the git. 
 ```sh
-$ git clone https://github.com/xtuzil/MockFW.git  # or pull
+$ git clone https://github.com/xtuzil/CacheMockFW-projectTemplate  # or pull
 ```
 2. Export mock data from Caché:
     * *nameOfTheMock* As %String
