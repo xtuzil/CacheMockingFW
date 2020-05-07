@@ -25,7 +25,7 @@ After creating mock, it is generated the class of the mock in 'MockFW.Mocks' rep
 * *delay* As %Integer in seconds = 0
 * *force* As %Integer (1 | 0) = 0  -> 1 to force overwrite the same records 
 ```c++
-MOCKFW>do ##class((MockFW.MockManager)).SaveMethod("MyMock", "Method", "{""name"":""John"""}", "return", "POST", 204, 5, 1)
+MOCKFW>do ##class(MockFW.MockManager).SaveMethod("MyMock", "Method", "{""name"":""John""}", "return", "POST", 204, 5, 1)
 ```
 Saving the method to the mock can be done also by direcly calling the class of the mock, see bellow.
 
@@ -109,7 +109,7 @@ MOCKFW>do ##class(MockFW.Mocks.MyMock).SaveMethod("Method", "", "return", "GET",
 **DispatchMethod()** - call certain method on specific mock class
 * *params* As %String or object
 ```c++
-MOCKFW>do ##class(MockFW.Mocks.MyMock).Method("{""name"":""John"""}")
+MOCKFW>do ##class(MockFW.Mocks.MyMock).Method("{""name"":""John""}")
 ```
 
 #### Instruction to calll the mock via request
