@@ -25,29 +25,29 @@ After creating mock, it is generated the class of the mock in 'MockFW.Mocks' rep
 * *delay* As %Integer in seconds = 0
 * *force* As %Integer (1 | 0) = 0  -> 1 to force overwrite the same records 
 ```c++
-MOCKFW>do ##class(MockFW.MockManager).SaveMethod("MyMock", "Method", "{""name"":""John""}", "return", "POST", 204, 5, 1)
+MOCKFW>do ##class((MockFW.MockManager)).SaveMethod("MyMock", "Method", "{""name"":""John"""}", "return", "POST", 204, 5, 1)
 ```
 Saving the method to the mock can be done also by direcly calling the class of the mock, see bellow.
 
-**MockMethodsFromCSV()** -- save multiple mocks and their mocked methods from .csv file 
+**SaveMethodsFromCSV()** -- save multiple mocks and their mocked methods from .csv file 
 * columns in CSV are the same as parameters for SaveMethod()
 * *filePath* As %String -> relative or absolute path to the file 
 ```c++
-MOCKFW>do ##class(MockFW.MockManager).MockMethodsFromCSV("C:\Users\user\Desktop\mockData.csv")
+MOCKFW>do ##class(MockFW.MockManager).SaveMethodsFromCSV("C:\Users\user\Desktop\mockData.csv")
 ```
 
 **GenerateDocumentation()** -- generate documentation for certain mock in XML format
 * *nameOfTheMock* As %String
 * *dirPath* As %String -> directory, where the documentation will be generated
-* *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
+* *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
-MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", 0)
+MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", 1)
 ```
 
 **ExportMock()** -- export mock for Docker usage 
 * *nameOfTheMock* As %String
 * *dirPath* As %String -> directory, where the files *dataGlobal.gof* and *mockClass.xml* will be generated
-* *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
+* *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
 MOCKFW>do ##class(MockFW.MockManager).ExportMock("MyMock", "C:\Users\user\Desktop")
 ```
@@ -133,12 +133,12 @@ http://localhost:CachéPort/api/mocks/MyMock/MethodUrl
 ## Instructions for FW user to distribute mock via Docker
 1. To distribute mock via Docker, first it is neccessary to prepare template directory of the project from the git. 
 ```sh
-$ git clone https://github.com/xtuzil/CacheMockingFW-DockerProjectTemplate  # or pull
+$ git clone https://github.com/xtuzil/MockFW.git  # or pull
 ```
 2. Export mock data from Caché:
     * *nameOfTheMock* As %String
     * *dirPath* As %String -> directory, where the files *dataGlobal.gof* and *mockClass.xml* will be generated
-    * *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
+    * *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
 MOCKFW>do ##class(MockFW.MockManager).ExportMock("MyMock", "C:\Users\user\Desktop")
 ```
@@ -173,6 +173,7 @@ b) Build the container and push it to Docker hub. The user will launch the mock 
         ```
    7. Send the name of tag to the user. He can run the container only by one docker command
    * this approach **does not allow** user to call the mock from IRIS terminal an also to edit the distributed mock
+  
     
 
 ## Instructions for docker mock user 
@@ -207,7 +208,7 @@ As a mock user in Docker you have two options how you can obtain the mock:
     * **ExportMock()** -- export mock for Docker usage 
         * *nameOfTheMock* As %String
         * *dirPath* As %String -> directory, where the files *dataGlobal.gof* and *mockClass.xml* will be generated
-        * *inContainer* As %Integer (1 | 0) = 0 -> dirPath is ignored and the file is generated to the Export folder in Docker project folder
+        * *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
         ```c++
         MOCKFW>do ##class(MockFW.MockManager).ExportMock("MyMock", "", 1)
         ```
