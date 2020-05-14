@@ -41,7 +41,7 @@ MOCKFW>do ##class(MockFW.MockManager).SaveMethodsFromCSV("C:\Users\user\Desktop\
 * *dirPath* As %String -> directory, where the documentation will be generated
 * *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
-MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", 1)
+MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", "")
 ```
 
 **ExportMock()** -- export mock for Docker usage 
