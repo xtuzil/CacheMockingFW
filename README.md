@@ -25,7 +25,7 @@ After creating mock, it is generated the class of the mock in 'MockFW.Mocks' rep
 * *delay* As %Integer in seconds = 0
 * *force* As %Integer (1 | 0) = 0  -> 1 to force overwrite the same records 
 ```c++
-MOCKFW>do ##class((MockFW.MockManager)).SaveMethod("MyMock", "Method", "{""name"":""John"""}", "return", "POST", 204, 5, 1)
+MOCKFW>do ##class((MockFW.MockManager)).SaveMethod("MyMock", "Method", "{""name"":""John""}", "return", "POST", 204, 5, 1)
 ```
 Saving the method to the mock can be done also by direcly calling the class of the mock, see bellow.
 
@@ -41,7 +41,11 @@ MOCKFW>do ##class(MockFW.MockManager).SaveMethodsFromCSV("C:\Users\user\Desktop\
 * *dirPath* As %String -> directory, where the documentation will be generated
 * *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
+<<<<<<< HEAD
+MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\")
+=======
 MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", "")
+>>>>>>> 017ed1c31d499ae1e971816253a987b02f91a1aa
 ```
 
 **ExportMock()** -- export mock for Docker usage 
@@ -90,7 +94,8 @@ MOCKFW>do ##class(MockFW.MockManager).DeleteMock("MyMock")
 ```c++
 MOCKFW>do ##class(MockFW.MockManager).CleanAll()
 ```
-      
+  
+     
 #### MockFW.Mocks.*NameOfTheMock*
 The generated class definition can be called in order to get predefined response. Also, it can be saved the mock method directly with this class.
 
@@ -106,10 +111,18 @@ The generated class definition can be called in order to get predefined response
 MOCKFW>do ##class(MockFW.Mocks.MyMock).SaveMethod("Method", "", "return", "GET", 404)
 ```
 
-**DispatchMethod()** - call certain method on specific mock class
+**DispatchClassMethod()** - call certain method on specific mock class
 * *params* As %String or object
 ```c++
 MOCKFW>do ##class(MockFW.Mocks.MyMock).Method("{""name"":""John""}")
+```
+
+
+**DispatchMethod()** - call certain method on specific **instance** of mock class
+* *params* As %String or object
+```c++
+MOCKFW>set mock = ##class(MockFW.Mocks.MyMock).%New()
+MOCKFW>do mock.Method("param")
 ```
 
 #### Instruction to calll the mock via request
@@ -133,7 +146,7 @@ http://localhost:CachéPort/api/mocks/MyMock/MethodUrl
 ## Instructions for FW user to distribute mock via Docker
 1. To distribute mock via Docker, first it is neccessary to prepare template directory of the project from the git. 
 ```sh
-$ git clone https://github.com/xtuzil/MockFW.git  # or pull
+$ git clone https://github.com/xtuzil/CacheMockingFW-DockerIRIS-template-for-distribution  # or pull
 ```
 2. Export mock data from Caché:
     * *nameOfTheMock* As %String
@@ -165,16 +178,32 @@ b) Build the container and push it to Docker hub. The user will launch the mock 
         
    5. Then rename the image (tag the image) by finding the container ID or name (using **docker ps**).  
         ```sh
-        $ docker tag mock1 myrepozitary/imagename:version
+        $ docker tag mock1 myrepository/imagename:version
          ```
    6. Now, push the image to the registry using the image ID.  
         ```sh
-        $ docker push myrepozitary/imagename:version
+        $ docker push myrepository/imagename:version
         ```
    7. Send the name of tag to the user. He can run the container only by one docker command
-   * this approach **does not allow** user to call the mock from IRIS terminal an also to edit the distributed mock
-  
+   * this approach allow user to call the mock from IRIS terminal an also to edit the distributed mock but **does not allow** to save changes to the mock for later usage!
     
+
+## Instructions for demonstration the features
+To start the Docker container with dataplatform IRIS with Caché Mocking framework, put sequence of Docker commands to the bash terminal in this folder location:
+```sh
+$ docker-compose build
+$ docker-compose up -d
+```
+
+Now you are free to try whatever you want. For inspiration use documentation below.
+
+There is also some demonstration prepared in this project folder **Demonstartion**. See sub-folders for more instructions.
+
+Whenever you want to stop container, put Docker commands:
+```sh
+$ docker-compose down
+```
+
 
 ## Instructions for docker mock user 
 As a mock user in Docker you have two options how you can obtain the mock:
@@ -226,10 +255,9 @@ As a mock user in Docker you have two options how you can obtain the mock:
     ```sh
     http://localhost:9092/api/mocks/MyMock/MethodUrl
     ```
-    But beware, this approach does not allow to call the mock from IRIS terminal and so the change in the mock is not possible. Also, this requires almost double downloaded amount of the data
+    But beware, this approach does not allow to save changes to the mock for later usage. Also, this requires almost double downloaded amount of the data.
     
 Look at the dockbook documentation to see all mocked methods in the mock!
 
     
 @Matěj Tužil 2020
-
