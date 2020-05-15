@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.1 (Build 801U)" ts="2020-04-26 14:39:06">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.1 (Build 801U)" ts="2020-05-15 09:53:22">
 <Class name="MockFW.MockBase">
 <Super>%RegisteredObject,MockFW.Utils,%SYSTEM.Event</Super>
-<TimeChanged>65495,52147.873585</TimeChanged>
+<TimeChanged>65514,35449.884866</TimeChanged>
 <TimeCreated>65495,51903.340181</TimeCreated>
 
 <Method name="SaveMethod">
@@ -12,16 +12,22 @@ Save method of Mock to the global if does not already exist</Description>
 <FormalSpec>mockName,methodName:%String,params,response,restMethod:%String="",code=200,delay=0,force=0</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	
-	if (restMethod="GET") {
-		set params = "GET"
+
+
+	if (params="") {
+		set params= "NONE"
 	}
-	
-	if (mockName="") || (methodName="") || (params="") || (response="") {
-		w !, "ERROR: One of the compulsory parameters is missing."
+
+	if (restMethod'="") && (response=""){
+		set response= "NONE"
+	}
+
+	if (mockName="") || (methodName="") || (response="") {
+		write !, "ERROR: One of the compulsory parameters is missing."
 		quit '$$$OK
 	}
-	
+
+
 	if ($ISOBJECT(params)) {
 		set params = params.%ToJSON()
 	}
@@ -30,41 +36,54 @@ Save method of Mock to the global if does not already exist</Description>
 		set response = response.%ToJSON()
 	}
 	
-	if (restMethod="") {
+	if (restMethod="") { // save local method
 		if 'force {
 			if ($DATA(^MockMat(mockName, methodName, params))) {
-					w !, "ERROR: The record with same parameters already exists."
+					write !, "ERROR: The record with same parameters already exists."
 					quit '$$$OK
 			} 
 			set tSC = ..GetMockedResponse(mockName, methodName, params, .res)
 			if (tSC=1) {
-				w !, "ERROR: The record with same parameters already exists."
+				write !, "ERROR: The record with same parameters already exists."
 				quit '$$$OK
 			}
 		}
 		
 		set ^MockMat(mockName, methodName, params) = response
+
+		write "Method ", methodName, " was succesfully saved to mock ", mockName, "!", !
 		
-	} else {
+	} else { //save endpoint
 		
 		if 'force {
 			if ($DATA(^MockMat(mockName, methodName, restMethod, params))) {
-					w !, "ERROR: The record with same parameters already exists."
+					write !, "ERROR: The record with same parameters already exists."
 					quit '$$$OK
 			} 
 			set tSC = ..GetMockedResponseREST(mockName, methodName, restMethod, params, .res) 
 			if (tSC=1) {
-				w !, "ERROR: The record with same parameters already exists."
+				write !, "ERROR: The record with same parameters already exists."
 				quit '$$$OK
 			}
 		}
-		
+
+		try {
+			set check = {}.%FromJSON(params)
+		} catch errobj {
+			if params'="NONE" {
+				write "WARNING: The body of the request is not valid JSON...  "
+			}
+		}
+
 		set ^MockMat(mockName, methodName, restMethod, params) = response
 		set ^MockMat(mockName, methodName, restMethod, params, "code") = code
 		set ^MockMat(mockName, methodName, restMethod, params, "delay") = delay
+
+		write "Method ", restMethod, " with url ", methodName, " was succesfully saved to mock ", mockName, "!", ! 
+
+
 	}
 	
-	w !, "Saved!"
 	quit $$$OK
 ]]></Implementation>
 </Method>
@@ -79,7 +98,6 @@ Return right data when specific method is called</Description>
 	set response = {}
 	set args = ..TransformArgsToList(Args...)
 	
-	// beru jen prvni paramtr, mozna by chtelo vsechny (pocitam s tim, ze vzdy dostanu object)
 	set params = args.GetAt(1)
 	
 	if ($ISOBJECT(params)) {
@@ -107,7 +125,7 @@ Retrieve right data from global if the method with specific parameters is mocked
      		set response = ^MockMat(mockName, methodName, key)
      		return $$$OK
      	}
-     	s key = $Order(^MockMat(mockName, methodName, key)) // next subscript
+     	set key = $Order(^MockMat(mockName, methodName, key)) // next subscript
  	}
  	if $Data(^MockMat(mockName, methodName, "DEFAULT")) {
  		set response = ^MockMat(mockName, methodName, "DEFAULT")
@@ -125,10 +143,11 @@ Retrieve right data from global if the method with specific parameters is mocked
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	set response=""
-	if method="GET" {
-		set body = "GET"
+
+	if ((body.%ToJSON())="{}") {
+		set body = "NONE"
 	}
-	
+
 	set key = $Order(^MockMat(mockName, methodName, method,""))
  	while (key '= "") {
      	set sc = ..Compare(key, body)
@@ -139,12 +158,12 @@ Retrieve right data from global if the method with specific parameters is mocked
 			hang delay
      		return $$$OK
      	}
-     	s key = $Order(^MockMat(mockName, methodName, method,key)) // next subscript
+     	set key = $Order(^MockMat(mockName, methodName, method,key)) // next subscript
  	}
  	if $Data(^MockMat(mockName, methodName, method, "DEFAULT")) {
  		set response = ^MockMat(mockName, methodName, method, "DEFAULT")
-		set code = ^MockMat(mockName, methodName, method, key, "code")
-		set delay = ^MockMat(mockName, methodName, method, key, "delay")
+		set code = ^MockMat(mockName, methodName, method, "DEFAULT", "code")
+		set delay = ^MockMat(mockName, methodName, method, "DEFAULT", "delay")
 		hang delay
  		quit $$$OK
  	}
@@ -157,7 +176,7 @@ Retrieve right data from global if the method with specific parameters is mocked
 
 <Class name="MockFW.MockManager">
 <Super>%RegisteredObject,MockFW.Utils</Super>
-<TimeChanged>65495,52729.837854</TimeChanged>
+<TimeChanged>65514,35565.721483</TimeChanged>
 <TimeCreated>65495,51883.297734</TimeCreated>
 
 <Method name="CreateMock">
@@ -170,7 +189,7 @@ Generates class definition in 'MockFW.Mocks' to be possible calling methods on t
 <Implementation><![CDATA[
 	set fullClassName = "MockFW.Mocks."_className
 	
-	If (##class(%Dictionary.ClassDefinition).%Exists(fullClassName)) {
+	If (##class(%Dictionary.CompiledClass).%ExistsId(fullClassName)) {
 		w "Mock with this name already exists!"
 		quit '$$$OK
 	}
@@ -178,18 +197,15 @@ Generates class definition in 'MockFW.Mocks' to be possible calling methods on t
 	set classDef=##class(%Dictionary.ClassDefinition).%New()
 	set classDef.Name=fullClassName
 	set classDef.ProcedureBlock=1
-	
 	set classDef.Super = "MockFW.MockBase"
 	
 	set methodDef = ##class(%Dictionary.MethodDefinition).%New()
 	set methodDef.Name = "SaveMethod"	
-	
 	set methodDef.ClassMethod = "1"
 	set methodDef.ReturnType = "%Status"
 	set methodDef.FormalSpec="methodName:%String,params,return,restMethod:%String="""",code=200,delay=0,force=0"	
 	do methodDef.Implementation.WriteLine($$$TAB_" set mockName = $PIECE($CLASSNAME(),""."",3) ")
 	do methodDef.Implementation.WriteLine($$$TAB_" do ##super(mockName, methodName, params, return, restMethod, code, delay, force)")
-	
 	do classDef.Methods.Insert(methodDef)
 	
 	set methodDef = ##class(%Dictionary.MethodDefinition).%New()
@@ -198,11 +214,17 @@ Generates class definition in 'MockFW.Mocks' to be possible calling methods on t
 	set methodDef.FormalSpec="Class:%String,methodName:%String,Args..."
 	do methodDef.Implementation.WriteLine($$$TAB_" set mockName = $PIECE(Class,""."",3) ")
 	do methodDef.Implementation.WriteLine($$$TAB_" quit ##class(MockFW.MockBase).MethodCalled(mockName, methodName, Args...)")
-
+	do classDef.Methods.Insert(methodDef)
+	
+	
+	set methodDef = ##class(%Dictionary.MethodDefinition).%New()
+	set methodDef.Name = "%DispatchMethod"	
+	set methodDef.FormalSpec="methodName:%String,Args..."
+	do methodDef.Implementation.WriteLine($$$TAB_" set mockName = $PIECE($CLASSNAME(),""."",3) ")
+	do methodDef.Implementation.WriteLine($$$TAB_" quit ##class(MockFW.MockBase).MethodCalled(mockName, methodName, Args...)")
 	do classDef.Methods.Insert(methodDef)
 	
 	do classDef.%Save()
-   
    	quit ##class(%SYSTEM.OBJ).Compile(fullClassName)
 ]]></Implementation>
 </Method>
@@ -218,13 +240,16 @@ To overwrite existing record adjust parametr force to 1</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="MockMethodsFromCSV">
+<Method name="SaveMethodsFromCSV">
 <Description>
 Import mock and mocks data from .csv file
-Import proccess from the second line with format 'Name of the Mock; Method; parameters; Response; Rest method'</Description>
+Import proccess from the second line with  'format 
+Name of the Mock; Method(endpoint); parameters; Response; Rest method; Return code, delay, force'</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>filePath:%String</FormalSpec>
 <Implementation><![CDATA[
+	set saved = 0
+	set count = 0
    	set stream=##class(%Stream.FileCharacter).%New()
    	set sc=stream.LinkToFile(filePath)
    	do stream.Rewind()
@@ -242,17 +267,16 @@ Import proccess from the second line with format 'Name of the Mock; Method; para
      	//Convert to objects because of way how we are saving
      	set params =  ..CutExtraQuotes(params)
      	set response =  ..CutExtraQuotes(response)
-     	if ..CanConvertToJSON(params) {
-     		set params={}.%FromJSON(params)
-     	}
-     	if ..CanConvertToJSON(response) = 1 {
-     		set response={}.%FromJSON(response)
-     	}
-     
+
      	if mockName'= "Name of the Mock" { // We do not want to take first line
-     		do ##class(MockFW.MockBase).SaveMethod(mockName, methodName, params, response, restMethod, code, delay, force)                  
-     	}
+		 	set count = count + 1
+     		set sc = ##class(MockFW.MockBase).SaveMethod(mockName, methodName, params, response, restMethod, code, delay, force)                  
+			if sc=$$$OK {
+				set saved = saved + 1
+			}
+		}
    	}
+	write !, "It was saved ", saved, " methods from ", count, !
 	quit $$$OK
 ]]></Implementation>
 </Method>
@@ -267,12 +291,6 @@ mockName = e.g. MyMock</Description>
 <FormalSpec>mockName:%String,dirPath:%String,inContainer:%Integer=0</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set className = "MockFW.Mocks."_mockName
-	set exist=##class(%Dictionary.CompiledClass).%ExistsId(className)
-	if 'exist {
-		quit '$$$OK
-	}
-	
 	if inContainer {
 		set dirPath = "/opt/mockfw/export/"
 	} else {
@@ -280,6 +298,13 @@ mockName = e.g. MyMock</Description>
 	}
 
 	do ..ExportMockData(mockName, dirPath)
+
+	set className = "MockFW.Mocks."_mockName
+	set exist=##class(%Dictionary.CompiledClass).%ExistsId(className)
+	if 'exist {
+		write "The class definition of mock "_mockName_" does not exist. Only global exported (might be empty)."
+		quit '$$$OK
+	}
 	do ..ExportMockClass(mockName, dirPath)
 
 	quit $$$OK
@@ -294,9 +319,8 @@ Auxiliary method, exports Mocks data</Description>
 <Private>1</Private>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	  
 	set global = "MockMat("_mockName
-	set filePath = dirPath_"dataGlobal.gof"
+	set filePath = dirPath_mockName_"Global.gof"
 	quit ##class(%Library.Global).Export(,global,filePath)
 ]]></Implementation>
 </Method>
@@ -310,7 +334,7 @@ Auxiliary method, exports Mock class</Description>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	set fullClassName = "MockFW.Mocks."_mockName_".cls"
-	set filePath = dirPath_"mockClass.xml"
+	set filePath = dirPath_mockName_"MockClass.xml"
 	quit $system.OBJ.Export(fullClassName, filePath)
 ]]></Implementation>
 </Method>
@@ -355,6 +379,7 @@ Delete specific method from specific mock (All records with different parameters
 <FormalSpec>mockName:%String,methodName:%String</FormalSpec>
 <Implementation><![CDATA[
 	kill ^MockMat(mockName, methodName)
+	write "The method ", methodName, " from mock ", mockName, " no longer exist.", !
 	quit $$$OK
 ]]></Implementation>
 </Method>
@@ -374,6 +399,8 @@ Delete specific method from specific mock with specific parameters</Description>
 	} else {
 		kill ^MockMat(mockName, methodName, restMethod, params)
 	}
+
+	write "The method ", methodName, " from mock ", mockName, "with parameters ", params, " no longer exist.", !
 ]]></Implementation>
 </Method>
 
@@ -384,7 +411,8 @@ Delete Mock class definition and also clean global from this Mock (Mocks data)</
 <FormalSpec>mockName:%String</FormalSpec>
 <Implementation><![CDATA[
 	Kill ^MockMat(mockName)
-	quit ##class(%SYSTEM.OBJ).Delete(mockName)
+	quit ##class(%SYSTEM.OBJ).Delete("MockFW.Mocks."_mockName)
+	write "The mock ", mockName, "no longer exists",!
 ]]></Implementation>
 </Method>
 
@@ -395,6 +423,15 @@ Delete all of the records and data</Description>
 <Implementation><![CDATA[
 	Kill ^MockMat
 	quit ##class(%SYSTEM.OBJ).DeletePackage("MockFW.Mocks")
+]]></Implementation>
+</Method>
+
+<Method name="InitMockForTest">
+<Description>
+Initialize mock name for testing purpose (parse mock name from instance of full class name)</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>serviceInstance</FormalSpec>
+<Implementation><![CDATA[	quit $PIECE($CLASSNAME(serviceInstance),".",3)
 ]]></Implementation>
 </Method>
 
@@ -410,6 +447,9 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 		set filePath = "/opt/mockfw/export/"
 	}
 	set filePath = filePath_mockName_"Doc.xml"
+
+	write "Generating documentation of the mock ", mockName, " to do ", filePath, !
+
 	set file=##class(%File).%New(filePath)
 	do file.Open("WSN")
 	do file.WriteLine("<?xml version=""1.0"" encoding=""UTF-8""?>")
@@ -421,18 +461,18 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 	do file.WriteLine(..Tabs(2)_"<author>")
 	do file.WriteLine(..Tabs(3)_"<firstname>"_$USERNAME_"</firstname>")
 	do file.WriteLine(..Tabs(2)_"</author>")
-	do file.WriteLine(..Tabs(2)_"<pubdate>"_$PIECE($ZDATETIME($ZTIMESTAMP,1,1,2)," ", 1)_"</pubdate>")
+	do file.WriteLine(..Tabs(2)_"<pubdate>"_$PIECE($ZDATETIME($ZTIMESTAMP,4,1,2)," ", 1)_"</pubdate>")
 	do file.WriteLine($$$TAB_"</bookinfo>")
 	
 	
 	do file.WriteLine($$$TAB_"<chapter>")
 	do file.WriteLine(..Tabs(2)_"<title>ZK.Mocks."_mockName_"</title>")
 	
-	
+
 	// first local mocked methods
 	set local = "false"
 	
-	set listMethods = ..GetAllMethods(mockName)
+	#dim listMethods = ##class(%ListOfDataTypes).%New()
 	set key = $Order(^MockMat(mockName,""))
  	while (key '= "") {
 		do listMethods.Insert(key)
@@ -575,6 +615,41 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 </Class>
 
 
+<Class name="MockFW.Mocks.MyMock">
+<ProcedureBlock>1</ProcedureBlock>
+<Super>MockFW.MockBase</Super>
+<TimeChanged>65507,39133.024586</TimeChanged>
+<TimeCreated>65507,39133.02306</TimeCreated>
+
+<Method name="%DispatchClassMethod">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>Class:%String,methodName:%String,Args...</FormalSpec>
+<Implementation><![CDATA[
+  set mockName = $PIECE(Class,".",3) 
+  quit ##class(MockFW.MockBase).MethodCalled(mockName, methodName, Args...)
+]]></Implementation>
+</Method>
+
+<Method name="%DispatchMethod">
+<FormalSpec>methodName:%String,Args...</FormalSpec>
+<Implementation><![CDATA[
+  set mockName = $PIECE($CLASSNAME(),".",3) 
+  quit ##class(MockFW.MockBase).MethodCalled(mockName, methodName, Args...)
+]]></Implementation>
+</Method>
+
+<Method name="SaveMethod">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>methodName:%String,params,return,restMethod:%String="",code=200,delay=0,force=0</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+  set mockName = $PIECE($CLASSNAME(),".",3) 
+  do ##super(mockName, methodName, params, return, restMethod, code, delay, force)
+]]></Implementation>
+</Method>
+</Class>
+
+
 <Class name="MockFW.REST.Base">
 <Super>%CSP.REST</Super>
 <TimeChanged>65495,52085.183109</TimeChanged>
@@ -646,7 +721,7 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 
 <Class name="MockFW.REST.Utils">
 <Super>%iKnow.REST.Utils,%CSP.REST,MockFW.Utils</Super>
-<TimeChanged>65495,52123.241659</TimeChanged>
+<TimeChanged>65514,35425.708158</TimeChanged>
 <TimeCreated>65495,51935.38924</TimeCreated>
 
 <Method name="ReadRequestToObject">
@@ -675,16 +750,18 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	quit:response="" SC
+	set:response="NONE" response=""
 	quit:SC'=$$$OK SC
 	set %response.Status = code
 
 	set stream=##class(%Stream.GlobalCharacter).%New()
-	if '..CanConvertToJSON(response) {
+
+	try {
+		set response={}.%FromJSON(response)
+	} catch {
 		set res = {}
 		do res.%Set("Response",response)
 		set response = res
-	} else {
-		set response={}.%FromJSON(response)
 	}
 
 	do response.%ToJSON(stream)
@@ -747,7 +824,7 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 
 <Class name="MockFW.REST">
 <Super>MockFW.REST.Base,MockFW.REST.Utils,%CSP.REST</Super>
-<TimeChanged>65495,52434.874226</TimeChanged>
+<TimeChanged>65514,35529.968025</TimeChanged>
 <TimeCreated>65495,51884.883851</TimeCreated>
 
 <XData name="UrlMap">
@@ -803,12 +880,12 @@ Dispatch method which is called for every endpoint. Distribute the request to th
 
 <Class name="MockFW.Utils">
 <Super>%RegisteredObject</Super>
-<TimeChanged>65495,52053.269872</TimeChanged>
+<TimeChanged>65514,35391.779456</TimeChanged>
 <TimeCreated>65495,51824.45642</TimeCreated>
 
 <Method name="Tabs">
 <Description>
-Auxiliary method, which add multiple $$$TAB to line of generated code</Description>
+Method, which add multiple $$$TAB to line of generated code</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>count</FormalSpec>
 <Implementation><![CDATA[
@@ -823,7 +900,7 @@ Auxiliary method, which add multiple $$$TAB to line of generated code</Descripti
 <Method name="CutExtraQuotes">
 <Description>
 Auxiliary method for retrieving from .csv.
-Cut extra double quotes to secure saving</Description>
+Cut extra double quotes to corect saving</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>string:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
@@ -856,63 +933,130 @@ Compare two strings (potentionally objects)</Description>
 	if savedObject = params {
 		return 1
 	}
-	
-	if ($ISOBJECT(savedObject)) {
-			set savedObject=savedObject.%ToJSON()
-	}
-		
-	if ($ISOBJECT(params)) {
-		set params=params.%ToJSON()
-	}
-	
-	if (..CanConvertToJSON(savedObject)) && (..CanConvertToJSON(params)) {
-		
+
+	try { // try transform string to object
 		if ('$ISOBJECT(savedObject)) {
 			set savedObject={}.%FromJSON(savedObject)
 		}
 		if ('$ISOBJECT(params)) {
 			set params={}.%FromJSON(params)
 		}
-		
+		return ..CompareObjects(savedObject, params)
+
+	} catch errobj { // one of string can not be tranform to object
+		return 0
+	}
+]]></Implementation>
+</Method>
+
+<Method name="CompareObjects">
+<Description>
+Method compare two dynamic objects</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>savedObject,params</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
 		if ((..CountAtributes(savedObject)) '= (..CountAtributes(params))) {
-			return 0
+			quit 0
 		}
 
 		set iterator = params.%GetIterator()
-    
     	while iterator.%GetNext(.key, .value) {
-    		if (savedObject.%Get(key) '= value) {
-    			return 0
-    		}
+			if ($ISOBJECT(value)) {
+				set valueS = savedObject.%Get(key)
+				if (('$ISOBJECT(valueS)) || ($CLASSNAME(value)'=$CLASSNAME(valueS))) {
+					return 0
+				}
+
+				if ($CLASSNAME(value)="%Library.DynamicObject") { // compare nested objects
+					if ('..CompareObjects(value, valueS)) {
+						return 0
+					}
+				} else {
+				 	if ('..CompareArrays(value, valueS)) { // compare nested arrays
+						return 0
+					}
+				}
+			} else {
+    			if (savedObject.%Get(key) '= value) {
+    				return 0
+    			}
+			}
    
 		}
-    	return 1
+	quit 1
+]]></Implementation>
+</Method>
+
+<Method name="CompareArrays">
+<Description>
+Method compare two dynamic arrays</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>saved,params</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	if (saved.%Size() '= params.%Size()) {
+		return 0
 	}
-	return 0
+
+	set iterator = params.%GetIterator()
+
+	while iterator.%GetNext(.key, .value) {
+		set iteratorS = saved.%GetIterator()
+		set found = "false"
+		while iteratorS.%GetNext(.keyS, .valueS) {
+			if ($ISOBJECT(value) && '$ISOBJECT(valueS)) || ('$ISOBJECT(value) && $ISOBJECT(valueS)) {
+				continue
+			}
+
+			if ($ISOBJECT(value)) {
+				if ($CLASSNAME(value)="%Library.DynamicObject") { // compare nested objects
+					if (..CompareObjects(value, valueS)) {
+						set found = "true"
+						quit
+					}
+				} else {
+				 	if (..CompareArrays(value, valueS)) { // compare nested arrays
+						set found = "true"
+						quit
+					}
+				}
+			} else {
+				if value=valueS {
+					set found = "true"
+					quit
+				}
+			}	
+		}
+		if found="false" {
+			return 0
+		}
+	}
+	quit 1
 ]]></Implementation>
 </Method>
 
 <Method name="CanConvertToJSON">
 <Description>
 Return '1' if the string can be transformed to the object, else '0'
-Use regex syntax. Work right only for two layers of json object </Description>
+Use regex syntax. Work right only for 2-3 layers of json object </Description>
 <ClassMethod>1</ClassMethod>
-<FormalSpec>obj</FormalSpec>
+<FormalSpec>json</FormalSpec>
 <ReturnType>%Integer</ReturnType>
 <Implementation><![CDATA[
-	set objWithoutSpaces = $ZSTRIP(obj,"*W")
-
-	set item = "\""[:alnum:]+\"""
-	set element = item_"\:"_item
+	set jsonWithoutSpaces = $ZSTRIP(json,"*W")
+	set item = "(\""[:alnum:]+\"")"
+	set itemValue = "((\""[:alnum:]+\"")|([:digit:]+))"
+	set element = item_"\:"_itemValue
 	set object = "\{("_element_"\,)*"_element_"\}"
-	set array = "\[((("_element_"\,)*"_element_")|(("_object _"\,)*"_object_")|(("_item _"\,)*"_item_"))\]"
+	set array = "((\[((("_element_"\,)*"_element_")|(("_object _"\,)*"_object_")|(("_itemValue _"\,)*"_itemValue_"))\])|(\[\]))"
 
 	set objectInObject = item_"\:"_object
 	set arrayInObject = item_"\:"_array
 
 	set regex = "\{((("_element_")|("_objectInObject_")|("_arrayInObject_"))\,)*(("_element_")|("_objectInObject_")|("_arrayInObject_"))\}"
 	
-	return $match(objWithoutSpaces, regex)
+	return $match(jsonWithoutSpaces, regex)
 ]]></Implementation>
 </Method>
 
