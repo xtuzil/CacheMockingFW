@@ -41,15 +41,7 @@ MOCKFW>do ##class(MockFW.MockManager).SaveMethodsFromCSV("C:\Users\user\Desktop\
 * *dirPath* As %String -> directory, where the documentation will be generated
 * *inContainer* As %Integer (1 | 0) = 0 ->  if inContainer is 1, dirPath is ignored and the file is generated to the Export folder in Docker project folder
 ```c++
-<<<<<<< HEAD
 MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\")
-=======
-<<<<<<< HEAD
-MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\")
-=======
-MOCKFW>do ##class(MockFW.MockManager).GenerateDocumentation("MyMock", "C:\Users\user\Desktop\", "")
->>>>>>> 017ed1c31d499ae1e971816253a987b02f91a1aa
->>>>>>> 9f24f474d9942240a358221cf7b7530b1f974697
 ```
 
 **ExportMock()** -- export mock for Docker usage 
@@ -191,23 +183,6 @@ b) Build the container and push it to Docker hub. The user will launch the mock 
    7. Send the name of tag to the user. He can run the container only by one docker command
    * this approach allow user to call the mock from IRIS terminal an also to edit the distributed mock but **does not allow** to save changes to the mock for later usage!
     
-
-## Instructions for demonstration the features
-To start the Docker container with dataplatform IRIS with Caché Mocking framework, put sequence of Docker commands to the bash terminal in this folder location:
-```sh
-$ docker-compose build
-$ docker-compose up -d
-```
-
-Now you are free to try whatever you want. For inspiration use documentation below.
-
-There is also some demonstration prepared in this project folder **Demonstartion**. See sub-folders for more instructions.
-
-Whenever you want to stop container, put Docker commands:
-```sh
-$ docker-compose down
-```
-
 
 ## Instructions for docker mock user 
 As a mock user in Docker you have two options how you can obtain the mock:
