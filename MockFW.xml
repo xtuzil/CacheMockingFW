@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.1 (Build 801U)" ts="2020-05-15 09:53:22">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.1 (Build 801U)" ts="2020-05-20 18:06:21">
 <Class name="MockFW.MockBase">
 <Super>%RegisteredObject,MockFW.Utils,%SYSTEM.Event</Super>
-<TimeChanged>65514,35449.884866</TimeChanged>
+<TimeChanged>65519,65011.07627</TimeChanged>
 <TimeCreated>65495,51903.340181</TimeCreated>
 
 <Method name="SaveMethod">
@@ -104,6 +104,7 @@ Return right data when specific method is called</Description>
 		set params = params.%ToJSON()
 	}
 	
+
 	set sc = ..GetMockedResponse(class, methodName, params, .response)
 	
 	return response
@@ -118,6 +119,11 @@ Retrieve right data from global if the method with specific parameters is mocked
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	set response=""
+	
+	if (params="") {
+		set params = "NONE"
+	}
+
 	set key = $Order(^MockMat(mockName, methodName,""))
  	while (key '= "") {
      	set sc = ..Compare(key, params)
@@ -176,7 +182,7 @@ Retrieve right data from global if the method with specific parameters is mocked
 
 <Class name="MockFW.MockManager">
 <Super>%RegisteredObject,MockFW.Utils</Super>
-<TimeChanged>65514,35565.721483</TimeChanged>
+<TimeChanged>65519,64968.684034</TimeChanged>
 <TimeCreated>65495,51883.297734</TimeCreated>
 
 <Method name="CreateMock">
@@ -448,7 +454,7 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 	}
 	set filePath = filePath_mockName_"Doc.xml"
 
-	write "Generating documentation of the mock ", mockName, " to do ", filePath, !
+	write "Generating documentation of the mock ", mockName, " to specified path",!
 
 	set file=##class(%File).%New(filePath)
 	do file.Open("WSN")
@@ -466,7 +472,7 @@ Format of the documentation is XML for simple transformation to DocBook via XMLm
 	
 	
 	do file.WriteLine($$$TAB_"<chapter>")
-	do file.WriteLine(..Tabs(2)_"<title>ZK.Mocks."_mockName_"</title>")
+	do file.WriteLine(..Tabs(2)_"<title>MockFW.Mocks."_mockName_"</title>")
 	
 
 	// first local mocked methods
